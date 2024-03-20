@@ -1,6 +1,6 @@
 # About The Project
 
-Auction systems facilitated by blockchain technology offer enhanced transparency, security, and efficiency compared to traditional methods. In a blockchain-based auction, each item or asset up for bidding is represented as a unique digital token on the blockchain. Participants in the auction can place bids and view the entire bid history in real-time, ensuring transparency and trust in the process.
+"SmartBid" is blockchain based auction like system that offers enhanced transparency, security, and efficiency compared to traditional methods. In a blockchain-based auction, each item or asset up for bidding is represented as a unique digital token on the blockchain. Participants in the auction can place bids and view the entire bid history in real-time, ensuring transparency and trust in the process.
 
 Blockchain's immutable ledger ensures that once a bid is recorded, it cannot be altered or deleted, preventing fraud and manipulation. Smart contracts, self-executing agreements stored on the blockchain, govern the auction rules and automatically execute transactions once predefined conditions are met, such as the end of the bidding period or reaching a winning bid.
 

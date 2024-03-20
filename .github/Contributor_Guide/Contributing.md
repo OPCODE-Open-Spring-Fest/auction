@@ -1,12 +1,12 @@
-# Contribute to auction
+# Contribute to smartbid
 
-Thank you for taking the time to contribute to auction! We really appreciate it. 
+Thank you for taking the time to contribute to smartbid! We really appreciate it. 
 
 Before contributing, please make sure to read the [Code of Conduct](../../CODE_OF_CONDUCT.md). We expect you to follow it in all your interactions with the project.
 
-## New to auction?
+## New to smartbid?
 
-If you are new to auction, please take a look at the [documentation](./Project_Tour.md). It is a great place to start.
+If you are new to smartbid, please take a look at the [documentation](./Project_Tour.md). It is a great place to start.
 
 ## New Contributor Guide
 
@@ -22,13 +22,13 @@ If you find a bug in the source code, you can help us by [submitting an issue](.
 
 ### Suggesting Enhancements
 
-If you want to suggest an enhancement to auction, please [submit an issue](../ISSUE_TEMPLATE/feature_request.yaml).
+If you want to suggest an enhancement to smartbid, please [submit an issue](../ISSUE_TEMPLATE/feature_request.yaml).
 
 ### Pull Requests
 
-If you want to contribute to auction, submit a pull request.
+If you want to contribute to smartbid, submit a pull request.
 
-- url: `https://github.com/OPCODE-Open-Spring-Fest/auction/compare/branch...YOURGITHUBUSERNAME:auction:BRANCH?quick_pull=1&template=pr.md`
+- url: `https://github.com/OPCODE-Open-Spring-Fest/smartbid/compare/branch...YOURGITHUBUSERNAME:smartbid:BRANCH?quick_pull=1&template=pr.md`
   
 ### Requirements
 

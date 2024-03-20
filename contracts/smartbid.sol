@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract EnglishAuction {
+contract smartbid {
     address payable public auctioneer;
     uint256 public stblock; // start time
     uint256 public etblock; // end time
