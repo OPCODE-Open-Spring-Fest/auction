@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract smartbid {
+contract EnglishAuction {
     address payable public auctioneer;
-    uint256 public stblock; // start time
-    uint256 public etblock; // end time
+    uint256 public stblock;   // start time
+    uint256 public etblock;   // end time
 
     enum Auc_state {
         Started,
@@ -44,10 +44,7 @@ contract smartbid {
         require(block.number > stblock, "Not yet Started");
         _;
     }
-    modifier beforeEnd() {
-        require(block.number < etblock, "Auction is Ended");
-        _;
-    }
+    
     function cancelAuc() public Owner{
         auctionState=Auc_state.Cancelled;
     }
@@ -56,13 +53,63 @@ contract smartbid {
         auctionState=Auc_state.Ended;
     }
 
-    
-    function AddBid() payable public NotOwner Start beforeEnd {
-        // your body of the code will go here
+    function min(uint256 a, uint256 b) private pure returns (uint256) {
+        if (a < b) 
+        return a;
+        else 
+        return b;
+    }
+
+    function AddBid() payable public NotOwner Start {
+        require(auctionState == Auc_state.Running);
+        require(msg.value >= 1 ether);
+        uint256 currentBid = bids[msg.sender] + msg.value;
+        require(currentBid > highestPayable);
+
+        bids[msg.sender] = currentBid;
+
+        if (currentBid < bids[highestBidder]) {
+            highestPayable = min(currentBid + bidInc, bids[highestBidder]);
+        }
+        else {
+            highestPayable=min(currentBid, bids[highestBidder] + bidInc);
+            highestBidder=payable(msg.sender);
+        }
 
     }
 
     function finalizeAuc() public {
-        // your body of the code will go here
+        require(auctionState==Auc_state.Cancelled || auctionState==Auc_state.Ended || block.number>etblock);
+        require(msg.sender==auctioneer || bids[msg.sender]>0);
+        
+        address payable person;
+        uint value;
+
+        if(auctionState==Auc_state.Cancelled)
+        {
+            person=payable(msg.sender);
+            value=bids[msg.sender];
+
+        }
+        else {
+            if(msg.sender== auctioneer)
+            {
+                person=auctioneer;
+                value=highestPayable;
+            }
+            else {
+                if(msg.sender ==highestBidder)
+                {
+                    person=highestBidder;
+                    value=bids[highestBidder];
+                }
+                else{
+                    person=payable(msg.sender);
+                    value=bids[msg.sender];
+                }
+            }
+        }
+        bids[msg.sender]=0;
+        person.transfer(value);
     }
 }
