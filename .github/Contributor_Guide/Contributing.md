@@ -31,34 +31,7 @@ If you want to contribute to smartbid, submit a pull request.
 - url: `https://github.com/OPCODE-Open-Spring-Fest/smartbid/compare/branch...YOURGITHUBUSERNAME:smartbid:BRANCH?quick_pull=1&template=pr.md`
   
 ### Requirements
-    To run *smartbid*, you need the following requirements:
-
-- [Node.js](https://nodejs.org/)
 
 
 ### Setup
 
-To set up *smartbid* on your local machine, follow these steps:
-
-## Installation Steps
-
-1. Fork the repository:
-   - Click the "Fork" button at the top right corner of this repository's page on GitHub. This will create a copy of the repository in your GitHub account.
-
-2. Clone the forked repository:
-
-```bash
-git clone https://github.com/<yourusername>/smartbid.git
-```
-
-
-3. Navigate to the project directory:
-```bash
-cd smartbid
-```
-
-4. Install Node.js dependencies:
-```bash
-npm i
-```
-Congratulations! You have successfully set up *smartbid* on your machine.
