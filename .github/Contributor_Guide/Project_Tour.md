@@ -1,9 +1,8 @@
 # Project Tour
 
-
 In the 'Contracts' folder, you'll find a single file with a '.sol' extension. This file is where you should make all your changes. Simply open this file to access the contract code and update it as needed. If you have any questions or need assistance with the changes, feel free to ask!
 
-
+```bash
 │   .gitignore
 │   CODE_OF_CONDUCT.md
 │   commitlint.config.js
@@ -38,3 +37,4 @@ In the 'Contracts' folder, you'll find a single file with a '.sol' extension. Th
 │
 └───contracts
         smartbid.sol
+```
