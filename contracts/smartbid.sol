@@ -22,6 +22,8 @@ contract EnglishAuction {
 
     mapping(address => uint256) public bids;
 
+    event bidPlaced (address bidder, uint bidAmount);
+
     constructor() {
         auctioneer = payable(msg.sender);
         auctionState = Auc_state.Running;
@@ -76,40 +78,51 @@ contract EnglishAuction {
             highestBidder=payable(msg.sender);
         }
 
+        emit bidPlaced(msg.sender, currentBid);
+
     }
 
     function finalizeAuc() public {
-        require(auctionState==Auc_state.Cancelled || auctionState==Auc_state.Ended || block.number>etblock);
-        require(msg.sender==auctioneer || bids[msg.sender]>0);
+        require(auctionState==Auc_state.Ended || block.number>etblock, "Auction still running");
+        require(msg.sender==auctioneer || msg.sender == highestBidder, "Call withdraw to withdraw your eth back");
         
         address payable person;
         uint value;
 
-        if(auctionState==Auc_state.Cancelled)
-        {
-            person=payable(msg.sender);
-            value=bids[msg.sender];
-
-        }
-        else {
             if(msg.sender== auctioneer)
             {
                 person=auctioneer;
                 value=highestPayable;
             }
             else {
-                if(msg.sender ==highestBidder)
-                {
-                    person=highestBidder;
-                    value=bids[highestBidder];
+                //if(msg.sender == highestBidder)
+                    // ownership of the bought item should transfer here
                 }
-                else{
-                    person=payable(msg.sender);
-                    value=bids[msg.sender];
-                }
-            }
+
+            bids[msg.sender]=0;
+            person.transfer(value);
         }
+
+    
+
+    function withdraw()public{
+        require(auctionState==Auc_state.Cancelled || auctionState==Auc_state.Ended || block.number>etblock, "Auction still running");
+        require(bids[msg.sender]>0, "Only bidders can withdraw");
+
+        address payable person;
+        uint value;
+
+        if(auctionState==Auc_state.Cancelled){
+            person=payable(msg.sender);
+            value=bids[msg.sender];
+        }else{
+            require(msg.sender!=highestBidder, "Highest bidder cannot withdraw");
+                person=payable(msg.sender);
+                value=bids[msg.sender];               
+            }
         bids[msg.sender]=0;
-        person.transfer(value);
+        person.transfer(value);            
+        }  
+
     }
-}
+
