@@ -15,6 +15,7 @@ contract EnglishAuction {
     address payable public highestBidder;
 
     mapping(address => uint256) public bids;
+    address[] public bidderAddresses; // Store bidder addresses separately
 
     event BidPlaced(address bidder, uint256 bidAmount);
 
@@ -75,10 +76,11 @@ contract EnglishAuction {
 
         if (msg.sender == auctioneer) {
             // Refund all bidders except the highest bidder
-            for (address bidder in bids.keys()) {
+            for (uint256 i = 0; i < bidderAddresses.length; i++) {
+                address bidder = bidderAddresses[i];
                 if (bidder != highestBidder) {
                     bids[bidder] = 0; // Reset bid for non-winner
-                    bidder.transfer(bids[bidder]);
+                    payable(bidder).transfer(bids[bidder]);
                 }
             }
         } else {
@@ -107,3 +109,4 @@ contract EnglishAuction {
         person.transfer(value);
     }
 }
+yeah wala bhej do
