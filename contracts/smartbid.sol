@@ -109,4 +109,3 @@ contract EnglishAuction {
         person.transfer(value);
     }
 }
-yeah wala bhej do
