@@ -3,126 +3,107 @@ pragma solidity ^0.8.0;
 
 contract EnglishAuction {
     address payable public auctioneer;
-    uint256 public stblock;   // start time
-    uint256 public etblock;   // end time
+    uint256 public startTime; // Start time (block number)
+    uint256 public endTime;   // End time (block number)
 
-    enum Auc_state {
-        Started,
-        Running,
-        Ended,
-        Cancelled
-    }
-    Auc_state public auctionState;
+    enum AuctionState { Started, Running, Ended, Cancelled }
+    AuctionState public auctionState;
 
     uint256 public highestBid;
-    uint256 public highestPayable;
-    uint256 public bidInc;
+    uint256 public minimumBidIncrement; // Use a more descriptive name
 
     address payable public highestBidder;
 
     mapping(address => uint256) public bids;
 
-    event bidPlaced (address bidder, uint bidAmount);
+    event BidPlaced(address bidder, uint256 bidAmount);
 
-    constructor() {
+    constructor(uint256 duration) {
         auctioneer = payable(msg.sender);
-        auctionState = Auc_state.Running;
-        stblock = block.number;
-        etblock = stblock + 240;
-        bidInc = 1 ether;
+        auctionState = AuctionState.Running;
+        startTime = block.number;
+        endTime = startTime + duration;
+        minimumBidIncrement = 1 ether;
     }
 
-    
-
-    modifier NotOwner() {
-        require(auctioneer != msg.sender);
+    modifier notOwner() {
+        require(auctioneer != msg.sender, "Not allowed for owner");
         _;
-    }
-    modifier Owner() {
-        require(auctioneer == msg.sender);
-        _;
-    }
-    modifier Start() {
-        require(block.number > stblock, "Not yet Started");
-        _;
-    }
-    
-    function cancelAuc() public Owner{
-        auctionState=Auc_state.Cancelled;
     }
 
-    function endAuc() public Owner{
-        auctionState=Auc_state.Ended;
+    modifier onlyOwner() {
+        require(auctioneer == msg.sender, "Only owner can perform");
+        _;
+    }
+
+    modifier started() {
+        require(block.number > startTime, "Auction not started yet");
+        _;
+    }
+
+    function cancelAuction() public onlyOwner {
+        auctionState = AuctionState.Cancelled;
+    }
+
+    function endAuction() public onlyOwner {
+        auctionState = AuctionState.Ended;
     }
 
     function min(uint256 a, uint256 b) private pure returns (uint256) {
-        if (a < b) 
-        return a;
-        else 
-        return b;
+        return a < b ? a : b;
     }
 
-    function AddBid() payable public NotOwner Start {
-        require(auctionState == Auc_state.Running);
-        require(msg.value >= 1 ether);
+    function placeBid() public payable notOwner started {
+        require(auctionState == AuctionState.Running, "Auction not running");
+        require(msg.value >= minimumBidIncrement + highestBid, "Bid too low");
+
         uint256 currentBid = bids[msg.sender] + msg.value;
-        require(currentBid > highestPayable);
 
         bids[msg.sender] = currentBid;
+        highestBid = currentBid;
 
-        if (currentBid < bids[highestBidder]) {
-            highestPayable = min(currentBid + bidInc, bids[highestBidder]);
-        }
-        else {
-            highestPayable=min(currentBid, bids[highestBidder] + bidInc);
-            highestBidder=payable(msg.sender);
+        if (currentBid > bids[highestBidder]) {
+            highestBidder = payable(msg.sender);
         }
 
-        emit bidPlaced(msg.sender, currentBid);
-
+        emit BidPlaced(msg.sender, currentBid);
     }
 
-    function finalizeAuc() public {
-        require(auctionState==Auc_state.Ended || block.number>etblock, "Auction still running");
-        require(msg.sender==auctioneer || msg.sender == highestBidder, "Call withdraw to withdraw your eth back");
-        
-        address payable person;
-        uint value;
+    function finalizeAuction() public {
+        require(auctionState == AuctionState.Ended || block.number > endTime, "Auction still running");
+        require(msg.sender == auctioneer || msg.sender == highestBidder, "Not authorized");
 
-            if(msg.sender== auctioneer)
-            {
-                person=auctioneer;
-                value=highestPayable;
-            }
-            else {
-                //if(msg.sender == highestBidder)
-                    // ownership of the bought item should transfer here
+        if (msg.sender == auctioneer) {
+            // Refund all bidders except the highest bidder
+            for (address bidder in bids.keys()) {
+                if (bidder != highestBidder) {
+                    bids[bidder] = 0; // Reset bid for non-winner
+                    bidder.transfer(bids[bidder]);
                 }
-
-            bids[msg.sender]=0;
-            person.transfer(value);
+            }
+        } else {
+            // Transfer ownership of the item to the highest bidder (implementation omitted)
+            auctioneer.transfer(highestBid);
         }
 
-    
-
-    function withdraw()public{
-        require(auctionState==Auc_state.Cancelled || auctionState==Auc_state.Ended || block.number>etblock, "Auction still running");
-        require(bids[msg.sender]>0, "Only bidders can withdraw");
-
-        address payable person;
-        uint value;
-
-        if(auctionState==Auc_state.Cancelled){
-            person=payable(msg.sender);
-            value=bids[msg.sender];
-        }else{
-            require(msg.sender!=highestBidder, "Highest bidder cannot withdraw");
-                person=payable(msg.sender);
-                value=bids[msg.sender];               
-            }
-        bids[msg.sender]=0;
-        person.transfer(value);            
-        }  
-
+        auctionState = AuctionState.Ended;
+        bids[highestBidder] = 0; // Reset bid for the winner
     }
 
+    function withdraw() public {
+        require(auctionState == AuctionState.Cancelled || auctionState == AuctionState.Ended || block.number > endTime, "Auction still running");
+        require(bids[msg.sender] > 0, "No bids to withdraw");
+
+        address payable person = payable(msg.sender);
+        uint256 value = bids[msg.sender];
+
+        if (auctionState == AuctionState.Cancelled) {
+            // Refund bids in case of cancellation
+        } else {
+            require(msg.sender != highestBidder, "Highest bidder cannot withdraw");
+        }
+
+        bids[msg.sender] = 0;
+        person.transfer(value);
+    }
+}
