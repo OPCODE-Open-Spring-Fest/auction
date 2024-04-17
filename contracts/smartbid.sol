@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract EnglishAuction {
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract EnglishAuction is ERC721, Ownable {
     address payable public auctioneer;
     uint256 public stblock;   // start time
     uint256 public etblock;   // end time
@@ -12,6 +15,7 @@ contract EnglishAuction {
         Ended,
         Cancelled
     }
+
     Auc_state public auctionState;
 
     uint256 public highestBid;
@@ -24,7 +28,7 @@ contract EnglishAuction {
 
     event bidPlaced (address bidder, uint bidAmount);
 
-    constructor() {
+    constructor(address initialOwner) ERC721("EnglishAuction", "EA") Ownable(initialOwner) {
         auctioneer = payable(msg.sender);
         auctionState = Auc_state.Running;
         stblock = block.number;
@@ -32,26 +36,21 @@ contract EnglishAuction {
         bidInc = 1 ether;
     }
 
-    
-
     modifier NotOwner() {
         require(auctioneer != msg.sender);
         _;
     }
-    modifier Owner() {
-        require(auctioneer == msg.sender);
-        _;
-    }
+
     modifier Start() {
         require(block.number > stblock, "Not yet Started");
         _;
     }
     
-    function cancelAuc() public Owner{
+    function cancelAuc() public onlyOwner {
         auctionState=Auc_state.Cancelled;
     }
 
-    function endAuc() public Owner{
+    function endAuc() public onlyOwner {
         auctionState=Auc_state.Ended;
     }
 
@@ -79,7 +78,6 @@ contract EnglishAuction {
         }
 
         emit bidPlaced(msg.sender, currentBid);
-
     }
 
     function finalizeAuc() public {
@@ -103,9 +101,7 @@ contract EnglishAuction {
             person.transfer(value);
         }
 
-    
-
-    function withdraw()public{
+    function withdraw() public {
         require(auctionState==Auc_state.Cancelled || auctionState==Auc_state.Ended || block.number>etblock, "Auction still running");
         require(bids[msg.sender]>0, "Only bidders can withdraw");
 
@@ -122,7 +118,14 @@ contract EnglishAuction {
             }
         bids[msg.sender]=0;
         person.transfer(value);            
-        }  
+    }  
 
+    function mint(address to, uint256 tokenId) public onlyOwner {
+        _mint(to, tokenId);
     }
 
+    function transferNFT(address from, address to, uint256 tokenId) public onlyOwner {
+        require(ownerOf(tokenId) == from, "You don't own this token");
+        safeTransferFrom(from, to, tokenId);
+    }
+}
